@@ -20,9 +20,6 @@ FETCH_INTERVAL = 10
 # quantity = how much to buy/sell per trade in base asset units.
 # Keep small on testnet. On live: size to your risk tolerance.
 #
-# NOTE: KITEUSDT may not be listed on testnet — if it errors,
-#       remove it or replace with another pair like DOGEUSDT.
-
 TRADE_PAIRS = [
     {
         "symbol":   "BTCUSDT",
@@ -40,8 +37,8 @@ TRADE_PAIRS = [
         "interval": "5m",
     },
     {
-        "symbol":   "KITEUSDT",
-        "quantity": 10.0,     # adjust based on KITE price
+        "symbol":   "BNBUSDT",
+        "quantity": 0.05,     # ~$15 worth at $300 BNB
         "interval": "5m",
     },
 ]

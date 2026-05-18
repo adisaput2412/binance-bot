@@ -104,7 +104,7 @@ def pair_loop(pair_cfg: dict, client, mode: str):
     trader      = Trader(client, symbol, quantity, risk, performance)
 
     # Init per-pair state
-    bot_state.update_pair(symbol, status="running", symbol=symbol)
+    bot_state.update_pair(symbol, status="running")
 
     # Snapshot starting balance (shared USDT pool)
     starting_usdt = get_usdt_balance(client)
