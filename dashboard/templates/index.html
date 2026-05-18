@@ -37,17 +37,13 @@
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       padding: 16px 28px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .header-left { display: flex; align-items: center; gap: 14px; }
     .logo {
-      width: 36px; height: 36px;
-      background: var(--blue);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: 700; color: #fff;
+      width: 36px; height: 36px; background: var(--blue);
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 18px; font-weight: 700; color: #fff;
     }
     h1 { font-size: 17px; font-weight: 600; }
     .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -60,6 +56,28 @@
     .status-starting { background: rgba(255,215,64,0.15); color: var(--yellow); }
     .status-stopped  { background: rgba(123,131,166,0.15); color: var(--muted); }
     .last-updated { font-size: 11px; color: var(--muted); }
+
+    /* ── Tabs ── */
+    .tabs-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex; gap: 0;
+    }
+    .tab-btn {
+      padding: 13px 20px;
+      font-size: 13px; font-weight: 600;
+      color: var(--muted);
+      background: none; border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer; transition: color 0.15s, border-color 0.15s;
+      letter-spacing: 0.2px;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
     /* ── Layout ── */
     .container { max-width: 1320px; margin: 0 auto; padding: 28px 24px 0; }
@@ -75,10 +93,8 @@
       gap: 14px; margin-bottom: 28px;
     }
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px;
     }
     .card-label {
       font-size: 11px; color: var(--muted);
@@ -97,35 +113,22 @@
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 18px; margin-bottom: 28px;
     }
-
     .pair-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      transition: border-color 0.2s;
     }
-
+    .pair-card:hover { border-color: var(--blue); }
     .pair-header {
-      display: flex; align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
       background: var(--surface2);
     }
     .pair-symbol { font-size: 16px; font-weight: 700; }
     .pair-price  { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
     .pair-change { font-size: 12px; margin-top: 2px; text-align: right; }
-
-    /* Chart area */
-    .pair-chart-wrap {
-      padding: 0;
-      height: 90px;
-      position: relative;
-      background: var(--bg);
-    }
+    .pair-chart-wrap { height: 90px; position: relative; background: var(--bg); }
     .pair-chart-wrap canvas { display: block; }
-
-    /* Stats rows */
     .pair-body { padding: 12px 16px; }
     .pair-row {
       display: flex; justify-content: space-between; align-items: center;
@@ -150,29 +153,85 @@
     .pos-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
     .pos-in  { background: rgba(0,230,118,0.12); color: var(--green); }
     .pos-out { background: rgba(123,131,166,0.10); color: var(--muted); }
-
     .pair-status-running { font-size: 11px; color: var(--green); font-weight: 600; }
     .pair-status-halted  { font-size: 11px; color: var(--red);   font-weight: 600; }
 
-    /* ── Sentiment panel ── */
+    /* ── Sentiment tab ── */
+    .sent-hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; margin-bottom: 28px;
+    }
+    .sent-hero-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .sent-big-pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 10px 28px; border-radius: 14px;
+      font-size: 18px; font-weight: 800; letter-spacing: 1px;
+      margin-top: 4px;
+    }
+    .sent-fg-bar-wrap {
+      height: 10px; border-radius: 99px;
+      background: linear-gradient(90deg, #ff5252 0%, #ffd740 50%, #00e676 100%);
+      position: relative; overflow: visible; margin-top: 4px;
+    }
+    .sent-fg-marker {
+      position: absolute; top: -4px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #fff; border: 3px solid var(--blue);
+      transform: translateX(-50%);
+      transition: left 0.4s ease;
+    }
+    .sent-fg-labels {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: var(--muted); margin-top: 6px;
+    }
+
+    .headlines-list {
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .headline-item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px; color: var(--text); line-height: 1.5;
+    }
+    .headline-item:last-child { border-bottom: none; }
+    .headline-score {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 8px; margin-left: 8px;
+      vertical-align: middle;
+    }
+    .hs-bullish { background: rgba(0,230,118,0.15); color: var(--green); }
+    .hs-bearish { background: rgba(255,82,82,0.15); color: var(--red); }
+    .hs-neutral { background: rgba(123,131,166,0.15); color: var(--muted); }
+
     .panel {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 20px; margin-bottom: 24px;
+      border-radius: var(--radius); padding: 24px; margin-bottom: 24px;
     }
     .panel-title {
       font-size: 13px; font-weight: 600; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 16px;
+      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 18px;
     }
 
-    /* ── Trade table ── */
+    /* ── Trade history tab ── */
+    .filter-bar {
+      display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--muted); cursor: pointer; transition: all 0.15s;
+    }
+    .filter-btn:hover { border-color: var(--blue); color: var(--text); }
+    .filter-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
     .trade-table-wrap {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); overflow: hidden;
-    }
-    .trade-table-header {
-      padding: 16px 20px; font-size: 13px; font-weight: 600;
-      color: var(--muted); text-transform: uppercase;
-      letter-spacing: 0.6px; border-bottom: 1px solid var(--border);
     }
     table { width: 100%; border-collapse: collapse; }
     th {
@@ -189,23 +248,29 @@
     tr:hover td { background: var(--surface2); }
     .badge-buy  { color: var(--green); font-weight: 700; }
     .badge-sell { color: var(--red);   font-weight: 700; }
-    .empty-row  { text-align: center; color: var(--muted); padding: 32px; }
+    .empty-row  { text-align: center; color: var(--muted); padding: 40px; }
 
-    @keyframes pulse { 0%{opacity:1}50%{opacity:0.3}100%{opacity:1} }
-    .pulse-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green); display: inline-block;
-      animation: pulse 2s infinite; margin-right: 6px;
+    /* Trade stats row */
+    .trade-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+    .trade-stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
     }
 
     @media (max-width: 600px) {
       .pairs-grid { grid-template-columns: 1fr; }
       .summary-cards { grid-template-columns: 1fr 1fr; }
+      .sent-hero { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
+<!-- Header -->
 <header>
   <div class="header-left">
     <div class="logo">B</div>
@@ -220,78 +285,162 @@
   </div>
 </header>
 
-<div class="container">
+<!-- Tabs -->
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('overview', this)">📈 Overview</button>
+  <button class="tab-btn" onclick="switchTab('sentiment', this)">🌐 Market Sentiment</button>
+  <button class="tab-btn" onclick="switchTab('history', this)">📋 Trade History</button>
+</div>
 
-  <!-- Summary -->
-  <div class="section-title">Session overview</div>
-  <div class="summary-cards">
-    <div class="card">
-      <div class="card-label">Total P&amp;L</div>
-      <div class="card-value" id="sum-pnl">—</div>
-      <div class="card-sub" id="sum-pnl-sub">Across all pairs</div>
-    </div>
-    <div class="card">
-      <div class="card-label">Account balance</div>
-      <div class="card-value" id="sum-balance">—</div>
-      <div class="card-sub" id="sum-mode">USDT · Testnet</div>
-    </div>
-    <div class="card">
-      <div class="card-label">Win rate</div>
-      <div class="card-value" id="sum-winrate">—</div>
-      <div class="card-sub" id="sum-trades">0 trades</div>
-    </div>
-    <div class="card">
-      <div class="card-label">Active pairs</div>
-      <div class="card-value" id="sum-pairs">—</div>
-      <div class="card-sub" id="sum-pairs-sub">Running threads</div>
-    </div>
-  </div>
+<!-- ══ TAB: Overview ══════════════════════════════════════════════ -->
+<div id="tab-overview" class="tab-panel active">
+  <div class="container">
 
-  <!-- Pair cards (built dynamically) -->
-  <div class="section-title">Live prices &amp; charts</div>
-  <div class="pairs-grid" id="pairs-grid">
-    <div style="color:var(--muted); padding:32px; text-align:center;">Connecting to bot...</div>
-  </div>
-
-  <!-- Sentiment -->
-  <div class="panel">
-    <div class="panel-title">Market sentiment</div>
-    <div style="display:flex; gap:20px; align-items:center; margin-bottom:16px; flex-wrap:wrap;">
-      <div>
-        <div class="card-label">Verdict</div>
-        <span class="signal-pill signal-NEUTRAL" id="sent-verdict" style="font-size:13px; padding:4px 12px">—</span>
+    <div class="section-title">Session overview</div>
+    <div class="summary-cards">
+      <div class="card">
+        <div class="card-label">Total P&amp;L</div>
+        <div class="card-value" id="sum-pnl">—</div>
+        <div class="card-sub" id="sum-pnl-sub">Across all pairs</div>
       </div>
-      <div>
-        <div class="card-label">Fear &amp; Greed</div>
-        <span style="font-size:16px; font-weight:700;" id="sent-fg">—</span>
+      <div class="card">
+        <div class="card-label">Account balance</div>
+        <div class="card-value" id="sum-balance">—</div>
+        <div class="card-sub" id="sum-mode">USDT · Testnet</div>
       </div>
-      <div style="flex:1; min-width:160px;">
-        <div class="card-label">Updated</div>
-        <span style="font-size:12px; color:var(--muted)" id="sent-updated">—</span>
+      <div class="card">
+        <div class="card-label">Win rate</div>
+        <div class="card-value" id="sum-winrate">—</div>
+        <div class="card-sub" id="sum-trades">0 trades</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Active pairs</div>
+        <div class="card-value" id="sum-pairs">—</div>
+        <div class="card-sub" id="sum-pairs-sub">Running threads</div>
       </div>
     </div>
-    <div class="card-label" style="margin-bottom:8px">Latest headlines</div>
-    <ul id="sent-headlines" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px;">
-      <li style="color:var(--muted); font-size:13px">Loading...</li>
-    </ul>
-  </div>
 
-  <!-- Trade history -->
-  <div class="trade-table-wrap">
-    <div class="trade-table-header">Trade history (last 200)</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Time</th><th>Pair</th><th>Side</th>
-          <th>Price (USDT)</th><th>Qty</th><th>P&amp;L (USDT)</th>
-        </tr>
-      </thead>
-      <tbody id="trade-tbody">
-        <tr><td colspan="6" class="empty-row">No trades yet — bot is watching the market</td></tr>
-      </tbody>
-    </table>
-  </div>
+    <div class="section-title">Live prices &amp; charts</div>
+    <div class="pairs-grid" id="pairs-grid">
+      <div style="color:var(--muted); padding:32px; text-align:center; grid-column:1/-1">Connecting to bot...</div>
+    </div>
 
+  </div>
+</div>
+
+<!-- ══ TAB: Sentiment ════════════════════════════════════════════ -->
+<div id="tab-sentiment" class="tab-panel">
+  <div class="container">
+
+    <div class="sent-hero">
+
+      <!-- Verdict card -->
+      <div class="sent-hero-card">
+        <div class="card-label">Overall verdict</div>
+        <div>
+          <span class="sent-big-pill signal-NEUTRAL" id="sent-verdict-big">—</span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:6px" id="sent-updated-big">Waiting for data...</div>
+      </div>
+
+      <!-- Fear & Greed card -->
+      <div class="sent-hero-card" style="min-width:260px">
+        <div class="card-label">Fear &amp; Greed index</div>
+        <div style="font-size:36px; font-weight:800; margin:4px 0" id="sent-fg-num">—</div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:10px" id="sent-fg-label">—</div>
+        <div class="sent-fg-bar-wrap">
+          <div class="sent-fg-marker" id="sent-fg-marker" style="left:50%"></div>
+        </div>
+        <div class="sent-fg-labels">
+          <span>Extreme Fear</span><span>Neutral</span><span>Extreme Greed</span>
+        </div>
+      </div>
+
+      <!-- Strategy impact card -->
+      <div class="sent-hero-card">
+        <div class="card-label">Strategy impact</div>
+        <div style="font-size:13px; color:var(--muted); line-height:1.7; margin-top:6px">
+          <div id="impact-buy">🟢 BUY signals: <strong style="color:var(--text)">—</strong></div>
+          <div id="impact-sell">🔴 SELL signals: <strong style="color:var(--text)">—</strong></div>
+          <div style="margin-top:10px; font-size:11px; color:var(--muted)">
+            Sentiment filters strategy signals.<br>
+            BEARISH blocks BUY · BULLISH blocks SELL.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Headlines -->
+    <div class="panel">
+      <div class="panel-title">Latest crypto headlines</div>
+      <div class="headlines-list" id="sent-headlines">
+        <div style="color:var(--muted); font-size:13px; padding:20px 0">Loading headlines...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ TAB: Trade History ════════════════════════════════════════ -->
+<div id="tab-history" class="tab-panel">
+  <div class="container">
+
+    <!-- Stats row -->
+    <div class="trade-stats" id="trade-stats-row">
+      <div class="trade-stat-card">
+        <div class="card-label">Total trades</div>
+        <div class="card-value" id="th-total">—</div>
+      </div>
+      <div class="trade-stat-card">
+        <div class="card-label">Wins</div>
+        <div class="card-value positive" id="th-wins">—</div>
+      </div>
+      <div class="trade-stat-card">
+        <div class="card-label">Losses</div>
+        <div class="card-value negative" id="th-losses">—</div>
+      </div>
+      <div class="trade-stat-card">
+        <div class="card-label">Total P&amp;L</div>
+        <div class="card-value" id="th-pnl">—</div>
+      </div>
+      <div class="trade-stat-card">
+        <div class="card-label">Best trade</div>
+        <div class="card-value positive" id="th-best">—</div>
+      </div>
+      <div class="trade-stat-card">
+        <div class="card-label">Worst trade</div>
+        <div class="card-value negative" id="th-worst">—</div>
+      </div>
+    </div>
+
+    <!-- Filter buttons -->
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="setFilter('ALL', this)">All pairs</button>
+      <button class="filter-btn" onclick="setFilter('BTCUSDT', this)">BTC</button>
+      <button class="filter-btn" onclick="setFilter('ETHUSDT', this)">ETH</button>
+      <button class="filter-btn" onclick="setFilter('SOLUSDT', this)">SOL</button>
+      <button class="filter-btn" onclick="setFilter('BNBUSDT', this)">BNB</button>
+      <button class="filter-btn" onclick="setFilter('BUY', this)">Buys only</button>
+      <button class="filter-btn" onclick="setFilter('SELL', this)">Sells only</button>
+    </div>
+
+    <!-- Table -->
+    <div class="trade-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th><th>Pair</th><th>Side</th>
+            <th>Price (USDT)</th><th>Qty</th><th>P&amp;L (USDT)</th>
+          </tr>
+        </thead>
+        <tbody id="trade-tbody">
+          <tr><td colspan="6" class="empty-row">No trades yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
 </div>
 
 <script>
@@ -299,26 +448,67 @@
   const fmtP = (n)      => n != null ? (n >= 0 ? '+' : '') + fmt(n, 4) : '—';
   const cls  = (n)      => n == null ? 'neutral' : (n >= 0 ? 'positive' : 'negative');
 
-  // ── Price history & charts ──────────────────────────────────────
-  const MAX_HISTORY = 60;   // ~5 min at 5s poll
-  const priceHistory = {}; // { BTCUSDT: [price, ...] }
-  const chartInst    = {}; // { BTCUSDT: Chart instance }
-
-  function getOrInitHistory(symbol) {
-    if (!priceHistory[symbol]) priceHistory[symbol] = [];
-    return priceHistory[symbol];
+  // ── Tab switching ──────────────────────────────────────────────
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
   }
 
+  // ── Trade filter ───────────────────────────────────────────────
+  let activeFilter = 'ALL';
+  let allTrades = [];
+
+  function setFilter(f, btn) {
+    activeFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTrades();
+  }
+
+  function renderTrades() {
+    const trades = allTrades.filter(t => {
+      if (activeFilter === 'ALL') return true;
+      if (activeFilter === 'BUY' || activeFilter === 'SELL') return t.side === activeFilter;
+      return t.symbol === activeFilter;
+    });
+
+    const tbody = document.getElementById('trade-tbody');
+    if (trades.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No trades for this filter</td></tr>';
+      return;
+    }
+    tbody.innerHTML = trades.map(t => {
+      const pnlStr = t.side === 'SELL' && t.pnl != null
+        ? `<span class="${t.pnl >= 0 ? 'positive' : 'negative'}">${fmtP(t.pnl)}</span>`
+        : '<span style="color:var(--muted)">—</span>';
+      return `<tr>
+        <td>${t.timestamp || '—'}</td>
+        <td style="font-weight:600">${t.symbol || '—'}</td>
+        <td><span class="badge-${(t.side||'').toLowerCase()}">${t.side || '—'}</span></td>
+        <td>${t.price != null ? fmt(t.price, 2) : '—'}</td>
+        <td>${t.quantity || '—'}</td>
+        <td>${pnlStr}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Price history & charts ─────────────────────────────────────
+  const MAX_HISTORY = 60;
+  const priceHistory = {};
+  const chartInst    = {};
+
   function pushPrice(symbol, price) {
-    const h = getOrInitHistory(symbol);
+    if (!priceHistory[symbol]) priceHistory[symbol] = [];
     if (price == null) return;
-    h.push(price);
-    if (h.length > MAX_HISTORY) h.shift();
+    priceHistory[symbol].push(price);
+    if (priceHistory[symbol].length > MAX_HISTORY) priceHistory[symbol].shift();
   }
 
   function chartColor(history) {
     if (history.length < 2) return '#448aff';
-    return history[history.length - 1] >= history[0] ? '#00e676' : '#ff5252';
+    return history[history.length-1] >= history[0] ? '#00e676' : '#ff5252';
   }
 
   function initChart(symbol) {
@@ -328,27 +518,18 @@
     chartInst[symbol] = new Chart(canvas, {
       type: 'line',
       data: {
-        labels: (priceHistory[symbol] || []).map(() => ''),
+        labels: (priceHistory[symbol]||[]).map(()=>''),
         datasets: [{
           data: priceHistory[symbol] || [],
-          borderColor: color,
-          borderWidth: 2,
-          pointRadius: 0,
-          tension: 0.4,
-          fill: true,
-          backgroundColor: color === '#00e676'
-            ? 'rgba(0,230,118,0.08)' : 'rgba(255,82,82,0.08)',
+          borderColor: color, borderWidth: 2,
+          pointRadius: 0, tension: 0.4, fill: true,
+          backgroundColor: color==='#00e676' ? 'rgba(0,230,118,0.07)' : 'rgba(255,82,82,0.07)',
         }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
+        responsive: true, maintainAspectRatio: false, animation: false,
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        scales: {
-          x: { display: false },
-          y: { display: false, grace: '5%' }
-        }
+        scales: { x: { display: false }, y: { display: false, grace: '5%' } }
       }
     });
   }
@@ -358,32 +539,28 @@
     if (!chart) return;
     const history = priceHistory[symbol] || [];
     const color   = chartColor(history);
-    chart.data.labels   = history.map(() => '');
-    chart.data.datasets[0].data            = history;
-    chart.data.datasets[0].borderColor     = color;
-    chart.data.datasets[0].backgroundColor = color === '#00e676'
-      ? 'rgba(0,230,118,0.08)' : 'rgba(255,82,82,0.08)';
+    chart.data.labels = history.map(()=>'');
+    chart.data.datasets[0].data = history;
+    chart.data.datasets[0].borderColor = color;
+    chart.data.datasets[0].backgroundColor = color==='#00e676' ? 'rgba(0,230,118,0.07)' : 'rgba(255,82,82,0.07)';
     chart.update('none');
   }
 
-  // ── Pair card HTML ──────────────────────────────────────────────
+  // ── Pair card HTML ─────────────────────────────────────────────
   function buildPairCardHTML(p) {
-    const sig      = p.last_signal || 'HOLD';
-    const inPos    = p.in_position;
-    const pnlClass = cls(p.total_pnl);
-    const statusCls = p.status === 'halted' ? 'pair-status-halted' : 'pair-status-running';
-    const total    = (p.wins||0) + (p.losses||0);
-    const wr       = total > 0 ? ((p.wins/total)*100).toFixed(0)+'%' : '—';
-    const rsi      = p.rsi;
-    const rsiCls   = rsi > 70 ? 'negative' : rsi < 30 ? 'positive' : 'neutral';
-
-    // price change (first vs last in history)
-    const hist   = priceHistory[p.symbol] || [];
-    const chg    = hist.length >= 2 ? hist[hist.length-1] - hist[0] : null;
-    const chgPct = chg != null && hist[0] ? ((chg/hist[0])*100).toFixed(2) : null;
-    const chgStr = chgPct != null
-      ? `<span class="${chg >= 0 ? 'positive' : 'negative'}">${chg >= 0 ? '▲' : '▼'} ${Math.abs(chgPct)}%</span>`
+    const sig   = p.last_signal || 'HOLD';
+    const inPos = p.in_position;
+    const total = (p.wins||0)+(p.losses||0);
+    const wr    = total > 0 ? ((p.wins/total)*100).toFixed(0)+'%' : '—';
+    const rsi   = p.rsi;
+    const rsiCls= rsi > 70 ? 'negative' : rsi < 30 ? 'positive' : 'neutral';
+    const hist  = priceHistory[p.symbol] || [];
+    const chg   = hist.length >= 2 ? hist[hist.length-1] - hist[0] : null;
+    const chgPct= chg != null && hist[0] ? ((chg/hist[0])*100).toFixed(2) : null;
+    const chgStr= chgPct != null
+      ? `<span class="${chg>=0?'positive':'negative'}">${chg>=0?'▲':'▼'} ${Math.abs(chgPct)}%</span>`
       : '<span style="color:var(--muted)">—</span>';
+    const statusCls = p.status==='halted' ? 'pair-status-halted' : 'pair-status-running';
 
     return `
       <div class="pair-card" id="pair-${p.symbol}">
@@ -393,15 +570,13 @@
             <div class="${statusCls}" style="margin-top:3px">${(p.status||'running').toUpperCase()}</div>
           </div>
           <div style="text-align:right">
-            <div class="pair-price" id="price-${p.symbol}">${p.price != null ? '$'+fmt(p.price,2) : '—'}</div>
+            <div class="pair-price" id="price-${p.symbol}">${p.price!=null?'$'+fmt(p.price,2):'—'}</div>
             <div class="pair-change" id="change-${p.symbol}">${chgStr}</div>
           </div>
         </div>
-
         <div class="pair-chart-wrap">
           <canvas id="chart-${p.symbol}" height="90"></canvas>
         </div>
-
         <div class="pair-body">
           <div class="pair-row">
             <span class="pair-row-label">Signal</span>
@@ -409,18 +584,18 @@
           </div>
           <div class="pair-row">
             <span class="pair-row-label">Position</span>
-            <span class="pos-badge ${inPos ? 'pos-in':'pos-out'}" id="pos-${p.symbol}">
-              ${inPos ? '● IN POSITION' : '○ FLAT'}
+            <span class="pos-badge ${inPos?'pos-in':'pos-out'}" id="pos-${p.symbol}">
+              ${inPos?'● IN POSITION':'○ FLAT'}
             </span>
           </div>
-          ${inPos && p.entry_price ? `
           <div class="pair-row" id="entry-row-${p.symbol}">
-            <span class="pair-row-label">Entry price</span>
-            <span class="pair-row-val" id="entry-${p.symbol}">$${fmt(p.entry_price,2)}</span>
-          </div>` : `<div id="entry-row-${p.symbol}"></div>`}
+            ${inPos && p.entry_price
+              ? `<span class="pair-row-label">Entry price</span><span class="pair-row-val">$${fmt(p.entry_price,2)}</span>`
+              : ''}
+          </div>
           <div class="pair-row">
             <span class="pair-row-label">Session P&amp;L</span>
-            <span class="pair-row-val ${pnlClass}" id="pnl-${p.symbol}">${fmtP(p.total_pnl)} USDT</span>
+            <span class="pair-row-val ${cls(p.total_pnl)}" id="pnl-${p.symbol}">${fmtP(p.total_pnl)} USDT</span>
           </div>
           <div class="pair-row">
             <span class="pair-row-label">W / L / Rate</span>
@@ -428,170 +603,163 @@
           </div>
           <div class="pair-row">
             <span class="pair-row-label">RSI (14)</span>
-            <span class="pair-row-val ${rsiCls}" id="rsi-${p.symbol}">${rsi != null ? rsi : '—'}</span>
+            <span class="pair-row-val ${rsiCls}" id="rsi-${p.symbol}">${rsi!=null?rsi:'—'}</span>
           </div>
           <div class="pair-row">
             <span class="pair-row-label">SMA 9 / 21</span>
             <span class="pair-row-val" id="sma-${p.symbol}">
-              ${p.sma_short ? fmt(p.sma_short,2) : '—'} / ${p.sma_long ? fmt(p.sma_long,2) : '—'}
+              ${p.sma_short?fmt(p.sma_short,2):'—'} / ${p.sma_long?fmt(p.sma_long,2):'—'}
             </span>
           </div>
         </div>
       </div>`;
   }
 
-  // ── Update existing pair card without rebuild ───────────────────
   function updatePairCard(p) {
-    const sig      = p.last_signal || 'HOLD';
-    const inPos    = p.in_position;
-    const pnlClass = cls(p.total_pnl);
-    const total    = (p.wins||0)+(p.losses||0);
-    const wr       = total > 0 ? ((p.wins/total)*100).toFixed(0)+'%' : '—';
-    const rsi      = p.rsi;
-    const rsiCls   = rsi > 70 ? 'negative' : rsi < 30 ? 'positive' : 'neutral';
-
-    const hist   = priceHistory[p.symbol] || [];
-    const chg    = hist.length >= 2 ? hist[hist.length-1] - hist[0] : null;
-    const chgPct = chg != null && hist[0] ? ((chg/hist[0])*100).toFixed(2) : null;
-    const chgStr = chgPct != null
-      ? `<span class="${chg >= 0 ? 'positive':'negative'}">${chg >= 0 ? '▲':'▼'} ${Math.abs(chgPct)}%</span>`
+    const sig   = p.last_signal || 'HOLD';
+    const inPos = p.in_position;
+    const total = (p.wins||0)+(p.losses||0);
+    const wr    = total > 0 ? ((p.wins/total)*100).toFixed(0)+'%' : '—';
+    const rsi   = p.rsi;
+    const rsiCls= rsi > 70 ? 'negative' : rsi < 30 ? 'positive' : 'neutral';
+    const hist  = priceHistory[p.symbol] || [];
+    const chg   = hist.length >= 2 ? hist[hist.length-1]-hist[0] : null;
+    const chgPct= chg!=null && hist[0] ? ((chg/hist[0])*100).toFixed(2) : null;
+    const chgStr= chgPct!=null
+      ? `<span class="${chg>=0?'positive':'negative'}">${chg>=0?'▲':'▼'} ${Math.abs(chgPct)}%</span>`
       : '<span style="color:var(--muted)">—</span>';
 
-    const set = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
-    const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
-    const setCls = (id, cls) => { const el = document.getElementById(id); if(el) el.className = cls; };
+    const set = (id, v) => { const e=document.getElementById(id); if(e) e.innerHTML=v; };
+    const txt = (id, v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
 
-    set('price-'  + p.symbol, p.price != null ? '$'+fmt(p.price,2) : '—');
-    set('change-' + p.symbol, chgStr);
+    set('price-'+p.symbol, p.price!=null?'$'+fmt(p.price,2):'—');
+    set('change-'+p.symbol, chgStr);
 
     const sigEl = document.getElementById('sig-'+p.symbol);
-    if (sigEl) { sigEl.textContent = sig; sigEl.className = 'signal-pill signal-'+sig; }
+    if(sigEl){ sigEl.textContent=sig; sigEl.className='signal-pill signal-'+sig; }
 
     const posEl = document.getElementById('pos-'+p.symbol);
-    if (posEl) {
-      posEl.textContent = inPos ? '● IN POSITION' : '○ FLAT';
-      posEl.className = 'pos-badge ' + (inPos ? 'pos-in' : 'pos-out');
-    }
+    if(posEl){ posEl.textContent=inPos?'● IN POSITION':'○ FLAT'; posEl.className='pos-badge '+(inPos?'pos-in':'pos-out'); }
 
-    const entryRow = document.getElementById('entry-row-'+p.symbol);
-    if (entryRow) {
-      entryRow.innerHTML = inPos && p.entry_price
-        ? `<span class="pair-row-label">Entry price</span>
-           <span class="pair-row-val">$${fmt(p.entry_price,2)}</span>`
-        : '';
-    }
+    set('entry-row-'+p.symbol, inPos && p.entry_price
+      ? `<span class="pair-row-label">Entry price</span><span class="pair-row-val">$${fmt(p.entry_price,2)}</span>` : '');
 
-    const pnlEl = document.getElementById('pnl-'+p.symbol);
-    if (pnlEl) { pnlEl.textContent = fmtP(p.total_pnl)+' USDT'; pnlEl.className = 'pair-row-val '+pnlClass; }
+    const pnlEl=document.getElementById('pnl-'+p.symbol);
+    if(pnlEl){ pnlEl.textContent=fmtP(p.total_pnl)+' USDT'; pnlEl.className='pair-row-val '+cls(p.total_pnl); }
 
-    setTxt('wl-'  + p.symbol, `${p.wins||0}W · ${p.losses||0}L · ${wr}`);
-
-    const rsiEl = document.getElementById('rsi-'+p.symbol);
-    if (rsiEl) { rsiEl.textContent = rsi != null ? rsi : '—'; rsiEl.className = 'pair-row-val '+rsiCls; }
-
-    setTxt('sma-' + p.symbol,
-      `${p.sma_short ? fmt(p.sma_short,2):'—'} / ${p.sma_long ? fmt(p.sma_long,2):'—'}`);
+    txt('wl-'+p.symbol,  `${p.wins||0}W · ${p.losses||0}L · ${wr}`);
+    const rsiEl=document.getElementById('rsi-'+p.symbol);
+    if(rsiEl){ rsiEl.textContent=rsi!=null?rsi:'—'; rsiEl.className='pair-row-val '+rsiCls; }
+    txt('sma-'+p.symbol, `${p.sma_short?fmt(p.sma_short,2):'—'} / ${p.sma_long?fmt(p.sma_long,2):'—'}`);
 
     updateChart(p.symbol);
   }
 
-  // ── Main refresh loop ───────────────────────────────────────────
-  let knownPairs = [];
+  // ── Main refresh ───────────────────────────────────────────────
+  let knownPairs = '';
 
   async function refresh() {
     let s;
-    try {
-      const r = await fetch('/api/state');
-      s = await r.json();
-    } catch(e) { return; }
+    try { const r=await fetch('/api/state'); s=await r.json(); }
+    catch(e) { return; }
 
     const pairs = s.pairs ? Object.values(s.pairs) : [];
-
-    // Push prices into history
     pairs.forEach(p => pushPrice(p.symbol, p.price));
 
     // Header
     document.getElementById('header-sub').textContent =
-      pairs.map(p=>p.symbol).join(' · ') + ' · started ' + (s.started_at||'—');
+      pairs.map(p=>p.symbol).join(' · ') + ' · started '+(s.started_at||'—');
     document.getElementById('last-updated').textContent =
       s.last_updated ? 'Updated '+s.last_updated : '';
-
-    const badge = document.getElementById('status-badge');
-    badge.textContent = (s.status||'unknown').toUpperCase();
-    badge.className = 'status-badge status-'+(s.status||'stopped');
+    const badge=document.getElementById('status-badge');
+    badge.textContent=(s.status||'unknown').toUpperCase();
+    badge.className='status-badge status-'+(s.status||'stopped');
 
     // Summary
     const totalPnl    = pairs.reduce((a,p)=>a+(p.total_pnl||0),0);
     const totalWins   = pairs.reduce((a,p)=>a+(p.wins||0),0);
     const totalLosses = pairs.reduce((a,p)=>a+(p.losses||0),0);
     const totalTrades = totalWins+totalLosses;
-    const wr          = totalTrades>0 ? ((totalWins/totalTrades)*100).toFixed(1)+'%' : '—';
-    const anyBalance  = pairs.length>0 ? pairs[0].current_balance : null;
+    const wr          = totalTrades>0?((totalWins/totalTrades)*100).toFixed(1)+'%':'—';
+    const anyBalance  = pairs.length>0?pairs[0].current_balance:null;
     const halted      = pairs.filter(p=>p.status==='halted').length;
 
-    const pnlEl = document.getElementById('sum-pnl');
-    pnlEl.textContent = fmtP(totalPnl)+' USDT';
-    pnlEl.className = 'card-value '+cls(totalPnl);
+    const pnlEl=document.getElementById('sum-pnl');
+    pnlEl.textContent=fmtP(totalPnl)+' USDT'; pnlEl.className='card-value '+cls(totalPnl);
 
-    const wrEl = document.getElementById('sum-winrate');
-    wrEl.textContent = wr;
-    wrEl.className = 'card-value '+(totalTrades>0?(totalWins/totalTrades>=0.5?'positive':'negative'):'neutral');
+    const wrEl=document.getElementById('sum-winrate');
+    wrEl.textContent=wr; wrEl.className='card-value '+(totalTrades>0?(totalWins/totalTrades>=0.5?'positive':'negative'):'neutral');
 
-    document.getElementById('sum-balance').textContent = anyBalance!=null ? '$'+fmt(anyBalance,2) : '—';
-    document.getElementById('sum-mode').textContent    = 'USDT · '+(s.mode||'—');
-    document.getElementById('sum-pairs').textContent   = (pairs.length-halted)+'/'+pairs.length;
-    document.getElementById('sum-pairs-sub').textContent = halted>0 ? halted+' pair(s) halted' : 'All running';
-    document.getElementById('sum-trades').textContent  = `${totalTrades} trade${totalTrades!==1?'s':''} · ${totalWins}W / ${totalLosses}L`;
+    document.getElementById('sum-balance').textContent=anyBalance!=null?'$'+fmt(anyBalance,2):'—';
+    document.getElementById('sum-mode').textContent='USDT · '+(s.mode||'—');
+    document.getElementById('sum-pairs').textContent=(pairs.length-halted)+'/'+pairs.length;
+    document.getElementById('sum-pairs-sub').textContent=halted>0?halted+' pair(s) halted':'All running';
+    document.getElementById('sum-trades').textContent=`${totalTrades} trade${totalTrades!==1?'s':''} · ${totalWins}W / ${totalLosses}L`;
 
-    // Pair cards — rebuild if pair list changed
-    const symbols = pairs.map(p=>p.symbol).sort().join(',');
-    if (symbols !== knownPairs) {
-      knownPairs = symbols;
-      const grid = document.getElementById('pairs-grid');
-      if (pairs.length === 0) {
-        grid.innerHTML = '<div style="color:var(--muted);padding:32px;text-align:center;grid-column:1/-1">No pairs configured</div>';
+    // Pair cards
+    const symbols=pairs.map(p=>p.symbol).sort().join(',');
+    if(symbols!==knownPairs) {
+      knownPairs=symbols;
+      const grid=document.getElementById('pairs-grid');
+      if(pairs.length===0){
+        grid.innerHTML='<div style="color:var(--muted);padding:32px;text-align:center;grid-column:1/-1">No pairs configured — bot may still be starting</div>';
       } else {
-        grid.innerHTML = pairs.map(buildPairCardHTML).join('');
-        pairs.forEach(p => initChart(p.symbol));
+        grid.innerHTML=pairs.map(buildPairCardHTML).join('');
+        pairs.forEach(p=>initChart(p.symbol));
       }
     } else {
-      pairs.forEach(p => updatePairCard(p));
+      pairs.forEach(p=>updatePairCard(p));
     }
 
-    // Sentiment
-    const sv = s.sentiment_verdict || 'NEUTRAL';
-    const svEl = document.getElementById('sent-verdict');
-    svEl.textContent = sv;
-    svEl.className = 'signal-pill signal-'+sv;
-    document.getElementById('sent-fg').textContent =
-      s.sentiment_fg_value != null ? `${s.sentiment_fg_value} — ${s.sentiment_fg_label||''}` : '—';
-    document.getElementById('sent-updated').textContent =
-      s.sentiment_updated ? 'Last updated: '+s.sentiment_updated : '—';
+    // ── Sentiment tab ──
+    const sv=s.sentiment_verdict||'NEUTRAL';
+    const svBig=document.getElementById('sent-verdict-big');
+    svBig.textContent=sv; svBig.className='sent-big-pill signal-'+sv;
 
-    const hlEl = document.getElementById('sent-headlines');
-    hlEl.innerHTML = s.sentiment_news && s.sentiment_news.length > 0
-      ? s.sentiment_news.map(h=>`<li style="font-size:12px;color:var(--muted);padding:4px 0;border-bottom:1px solid var(--border)">${h}</li>`).join('')
-      : '<li style="color:var(--muted);font-size:13px">No headlines yet</li>';
+    document.getElementById('sent-updated-big').textContent=
+      s.sentiment_updated?'Last updated: '+s.sentiment_updated:'Waiting for data...';
 
-    // Trades
-    const tbody = document.getElementById('trade-tbody');
-    if (!s.trades || s.trades.length===0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No trades yet — bot is watching the market</td></tr>';
+    const fgVal=s.sentiment_fg_value;
+    const fgLabel=s.sentiment_fg_label||'';
+    document.getElementById('sent-fg-num').textContent=fgVal!=null?fgVal:'—';
+    document.getElementById('sent-fg-label').textContent=fgLabel||'—';
+    if(fgVal!=null) document.getElementById('sent-fg-marker').style.left=fgVal+'%';
+
+    // Impact
+    document.getElementById('impact-buy').innerHTML=
+      `🟢 BUY signals: <strong style="color:var(--text)">${sv==='BEARISH'?'BLOCKED by sentiment':'Allowed'}</strong>`;
+    document.getElementById('impact-sell').innerHTML=
+      `🔴 SELL signals: <strong style="color:var(--text)">${sv==='BULLISH'?'BLOCKED by sentiment':'Allowed'}</strong>`;
+
+    // Headlines
+    const hlEl=document.getElementById('sent-headlines');
+    if(s.sentiment_news && s.sentiment_news.length>0){
+      hlEl.innerHTML=s.sentiment_news.map(h=>`
+        <div class="headline-item">${h}</div>`).join('');
     } else {
-      tbody.innerHTML = s.trades.map(t => {
-        const pnlStr = t.side==='SELL' && t.pnl!=null
-          ? `<span class="${t.pnl>=0?'positive':'negative'}">${fmtP(t.pnl)}</span>`
-          : '<span style="color:var(--muted)">—</span>';
-        return `<tr>
-          <td>${t.timestamp||'—'}</td>
-          <td style="font-weight:600">${t.symbol||'—'}</td>
-          <td><span class="badge-${(t.side||'').toLowerCase()}">${t.side||'—'}</span></td>
-          <td>${t.price!=null?fmt(t.price,2):'—'}</td>
-          <td>${t.quantity||'—'}</td>
-          <td>${pnlStr}</td>
-        </tr>`;
-      }).join('');
+      hlEl.innerHTML='<div style="color:var(--muted);font-size:13px;padding:16px 0">No headlines yet — refreshes every 15 min</div>';
     }
+
+    // ── Trade history tab ──
+    allTrades=s.trades||[];
+
+    // Stats
+    const sellTrades=allTrades.filter(t=>t.side==='SELL'&&t.pnl!=null);
+    const pnlSum=sellTrades.reduce((a,t)=>a+t.pnl,0);
+    const wins=sellTrades.filter(t=>t.pnl>0).length;
+    const losses=sellTrades.filter(t=>t.pnl<=0).length;
+    const best=sellTrades.length>0?Math.max(...sellTrades.map(t=>t.pnl)):null;
+    const worst=sellTrades.length>0?Math.min(...sellTrades.map(t=>t.pnl)):null;
+
+    document.getElementById('th-total').textContent=allTrades.length;
+    document.getElementById('th-wins').textContent=wins;
+    document.getElementById('th-losses').textContent=losses;
+    const thPnl=document.getElementById('th-pnl');
+    thPnl.textContent=fmtP(pnlSum)+' USDT'; thPnl.className='card-value '+cls(pnlSum);
+    document.getElementById('th-best').textContent=best!=null?fmtP(best)+' USDT':'—';
+    document.getElementById('th-worst').textContent=worst!=null?fmtP(worst)+' USDT':'—';
+
+    renderTrades();
   }
 
   refresh();
