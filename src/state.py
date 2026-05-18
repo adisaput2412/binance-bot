@@ -39,6 +39,13 @@ class BotState:
             "starting_balance": None,
             "current_balance":  None,
 
+            # Sentiment
+            "sentiment_verdict":  "NEUTRAL",
+            "sentiment_fg_value": None,
+            "sentiment_fg_label": None,
+            "sentiment_news":     [],
+            "sentiment_updated":  None,
+
             # Trade history (list of dicts)
             "trades": [],
         }

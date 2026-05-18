@@ -22,6 +22,7 @@ from src.performance import PerformanceTracker
 from src.trader import Trader
 from src.data import get_account_balance
 from src.state import bot_state
+from src.sentiment import get_sentiment
 import src.notifier as notifier
 from dashboard.app import run_dashboard
 from src.config import (
@@ -47,6 +48,18 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+
+def _update_sentiment_state(s: dict) -> None:
+    if not s:
+        return
+    bot_state.update(
+        sentiment_verdict=s.get("verdict", "NEUTRAL"),
+        sentiment_fg_value=s.get("fg_value"),
+        sentiment_fg_label=s.get("fg_label"),
+        sentiment_news=s.get("headlines", []),
+        sentiment_updated=s.get("updated_at"),
+    )
 
 
 def get_usdt_balance(client) -> float:
@@ -104,11 +117,27 @@ def main():
 
     notifier.notify_bot_start(TRADE_SYMBOL, TRADE_INTERVAL, mode)
 
-    prev_indicators = None
+    prev_indicators  = None
+    current_sentiment = None
+    sentiment_ticks   = 0
+    SENTIMENT_EVERY   = 90   # refresh sentiment every 90 ticks × 10s = 15 minutes
+
+    # Fetch sentiment once on startup
+    logger.info("Fetching initial sentiment...")
+    current_sentiment = get_sentiment()
+    _update_sentiment_state(current_sentiment)
+
     logger.info("Bot is live — open http://localhost:5000 — Ctrl+C to stop\n")
 
     try:
         while True:
+            # Refresh sentiment every 15 minutes
+            sentiment_ticks += 1
+            if sentiment_ticks >= SENTIMENT_EVERY:
+                current_sentiment = get_sentiment()
+                _update_sentiment_state(current_sentiment)
+                sentiment_ticks = 0
+
             indicators = get_indicators(
                 client,
                 symbol=TRADE_SYMBOL,
@@ -137,7 +166,7 @@ def main():
                 )
 
                 if not risk.is_session_limit_hit():
-                    signal = get_signal(indicators, prev_indicators)
+                    signal = get_signal(indicators, prev_indicators, current_sentiment)
                     bot_state.update(last_signal=signal)
                     trader.tick(signal, current_price)
                 else:

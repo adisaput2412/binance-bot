@@ -336,6 +336,29 @@
     </div>
   </div>
 
+  <!-- Sentiment -->
+  <div class="panel" style="margin-bottom:24px">
+    <div class="panel-title">Market sentiment</div>
+    <div style="display:flex; gap:16px; align-items:center; margin-bottom:16px; flex-wrap:wrap;">
+      <div>
+        <div class="card-label">Verdict</div>
+        <span class="signal-pill signal-HOLD" id="sent-verdict" style="font-size:14px; padding:5px 14px">—</span>
+      </div>
+      <div>
+        <div class="card-label">Fear & Greed</div>
+        <span class="indicator-val" id="sent-fg">—</span>
+      </div>
+      <div style="flex:1; min-width:160px;">
+        <div class="card-label">Updated</div>
+        <span style="font-size:12px; color:var(--muted)" id="sent-updated">—</span>
+      </div>
+    </div>
+    <div class="card-label" style="margin-bottom:8px">Latest headlines</div>
+    <ul id="sent-headlines" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px;">
+      <li style="color:var(--muted); font-size:13px">Loading...</li>
+    </ul>
+  </div>
+
   <!-- Trade history -->
   <div class="trade-table-wrap">
     <div class="trade-table-header">Trade history</div>
@@ -443,6 +466,28 @@
       s.starting_balance != null ? '$' + fmt(s.starting_balance, 2) : '—';
     document.getElementById('mode-val').textContent     = s.mode || '—';
     document.getElementById('interval-val').textContent = s.interval || '—';
+
+    // Sentiment
+    const sv = s.sentiment_verdict || 'NEUTRAL';
+    const svEl = document.getElementById('sent-verdict');
+    svEl.textContent = sv;
+    svEl.className = 'signal-pill signal-' + sv;
+
+    const fgVal = s.sentiment_fg_value;
+    const fgLabel = s.sentiment_fg_label || '';
+    document.getElementById('sent-fg').textContent =
+      fgVal != null ? `${fgVal} — ${fgLabel}` : '—';
+    document.getElementById('sent-updated').textContent =
+      s.sentiment_updated ? `Last updated: ${s.sentiment_updated}` : '—';
+
+    const hlEl = document.getElementById('sent-headlines');
+    if (s.sentiment_news && s.sentiment_news.length > 0) {
+      hlEl.innerHTML = s.sentiment_news.map(h =>
+        `<li style="font-size:12px; color:var(--muted); padding:4px 0; border-bottom:1px solid var(--border)">${h}</li>`
+      ).join('');
+    } else {
+      hlEl.innerHTML = '<li style="color:var(--muted); font-size:13px">No headlines yet</li>';
+    }
 
     // Trade history
     const tbody = document.getElementById('trade-tbody');

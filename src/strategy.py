@@ -1,12 +1,12 @@
 """
 strategy.py — generates BUY / SELL / HOLD signals.
 
-Uses a combined SMA crossover + RSI filter:
-  BUY  — short SMA crosses above long SMA  AND  RSI < 60  (not overbought)
-  SELL — short SMA crosses below long SMA  AND  RSI > 40  (not oversold)
-  HOLD — signals don't agree, or no crossover
+Uses a combined SMA crossover + RSI filter + Sentiment guard:
+  BUY  — short SMA crosses above long SMA  AND  RSI < 70  AND  sentiment != BEARISH
+  SELL — short SMA crosses below long SMA  AND  RSI > 30  AND  sentiment != BULLISH
+  HOLD — signals don't agree, crossover blocked by sentiment, or no crossover
 
-Requiring BOTH indicators to agree dramatically reduces false signals.
+Sentiment is refreshed every 15 minutes in main.py (Fear & Greed + Google News).
 """
 
 import logging
@@ -19,17 +19,20 @@ SELL = "SELL"
 HOLD = "HOLD"
 
 # RSI thresholds for confirmation
-RSI_OVERBOUGHT = 70   # avoid buying when already overbought
-RSI_OVERSOLD   = 30   # avoid selling when already oversold
+RSI_OVERBOUGHT = 70
+RSI_OVERSOLD   = 30
 
 
-def get_signal(indicators: dict, prev_indicators: dict | None) -> str:
+def get_signal(indicators: dict, prev_indicators: dict | None,
+               sentiment: dict | None = None) -> str:
     """
-    Compares current and previous indicator readings to detect a crossover.
+    Compares current and previous indicator readings to detect a crossover,
+    then applies sentiment as a final gate before firing the signal.
 
     Args:
-        indicators:      current period's indicator dict from indicators.get_indicators()
+        indicators:      current period's indicator dict
         prev_indicators: previous period's indicator dict (or None on first run)
+        sentiment:       dict from sentiment.get_sentiment() or None (ignored if None)
 
     Returns:
         "BUY", "SELL", or "HOLD"
@@ -49,45 +52,61 @@ def get_signal(indicators: dict, prev_indicators: dict | None) -> str:
     curr_rsi   = indicators["rsi"]
     curr_close = indicators["close"]
 
+    verdict = sentiment.get("verdict", "NEUTRAL") if sentiment else "NEUTRAL"
+    fg_value = sentiment.get("fg_value", 50) if sentiment else 50
+    fg_label = sentiment.get("fg_label", "Unknown") if sentiment else "Unknown"
+
     # Detect crossover direction
     was_below = prev_short <= prev_long
     now_above = curr_short > curr_long
-
     was_above = prev_short >= prev_long
     now_below = curr_short < curr_long
 
     signal = HOLD
 
     if was_below and now_above:
-        # Short SMA crossed above long → bullish crossover
-        if curr_rsi < RSI_OVERBOUGHT:
+        # Bullish crossover
+        if curr_rsi >= RSI_OVERBOUGHT:
+            logger.info(f"Crossover up but RSI={curr_rsi} overbought — holding")
+
+        elif verdict == "BEARISH":
+            logger.info(
+                f"Crossover up blocked — sentiment BEARISH "
+                f"(F&G={fg_value} {fg_label}) — holding"
+            )
+
+        else:
             signal = BUY
             logger.info(
                 f"BUY signal  | price={curr_close:,.4f}  "
-                f"SMA({curr_short:.4f}) > SMA({curr_long:.4f})  RSI={curr_rsi}"
-            )
-        else:
-            logger.info(
-                f"Crossover up but RSI={curr_rsi} too overbought — holding"
+                f"SMA({curr_short:.4f})>SMA({curr_long:.4f})  "
+                f"RSI={curr_rsi}  Sentiment={verdict} (F&G={fg_value})"
             )
 
     elif was_above and now_below:
-        # Short SMA crossed below long → bearish crossover
-        if curr_rsi > RSI_OVERSOLD:
+        # Bearish crossover
+        if curr_rsi <= RSI_OVERSOLD:
+            logger.info(f"Crossover down but RSI={curr_rsi} oversold — holding")
+
+        elif verdict == "BULLISH":
+            logger.info(
+                f"Crossover down blocked — sentiment BULLISH "
+                f"(F&G={fg_value} {fg_label}) — holding"
+            )
+
+        else:
             signal = SELL
             logger.info(
                 f"SELL signal | price={curr_close:,.4f}  "
-                f"SMA({curr_short:.4f}) < SMA({curr_long:.4f})  RSI={curr_rsi}"
-            )
-        else:
-            logger.info(
-                f"Crossover down but RSI={curr_rsi} too oversold — holding"
+                f"SMA({curr_short:.4f})<SMA({curr_long:.4f})  "
+                f"RSI={curr_rsi}  Sentiment={verdict} (F&G={fg_value})"
             )
 
     else:
         logger.debug(
             f"HOLD | price={curr_close:,.4f}  "
-            f"SMA_short={curr_short:.4f}  SMA_long={curr_long:.4f}  RSI={curr_rsi}"
+            f"SMA_s={curr_short:.4f}  SMA_l={curr_long:.4f}  "
+            f"RSI={curr_rsi}  Sentiment={verdict}"
         )
 
     return signal
