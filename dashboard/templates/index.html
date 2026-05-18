@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binance Bot Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --surface2:  #22263a;
+      --border:    #2e3350;
+      --text:      #e8eaf6;
+      --muted:     #7b83a6;
+      --green:     #00e676;
+      --red:       #ff5252;
+      --yellow:    #ffd740;
+      --blue:      #448aff;
+      --radius:    12px;
+      --font:      -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 0 0 40px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+
+    .logo {
+      width: 36px; height: 36px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: #fff;
+    }
+
+    h1 { font-size: 17px; font-weight: 600; }
+    .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .status-badge {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .status-running  { background: rgba(0,230,118,0.15); color: var(--green); }
+    .status-halted   { background: rgba(255,82,82,0.15);  color: var(--red); }
+    .status-starting { background: rgba(255,215,64,0.15); color: var(--yellow); }
+    .status-stopped  { background: rgba(123,131,166,0.15); color: var(--muted); }
+
+    .last-updated { font-size: 11px; color: var(--muted); }
+
+    /* ── Layout ── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 28px 24px 0; }
+
+    /* ── Stat cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+
+    .card-value {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+    .neutral  { color: var(--text); }
+
+    /* ── Two-column section ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 720px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 16px;
+    }
+
+    /* ── Indicator rows ── */
+    .indicator-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .indicator-row:last-child { border-bottom: none; }
+    .indicator-name { color: var(--muted); font-size: 13px; }
+    .indicator-val  { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* Signal pill */
+    .signal-pill {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .signal-BUY  { background: rgba(0,230,118,0.15); color: var(--green); }
+    .signal-SELL { background: rgba(255,82,82,0.15);  color: var(--red); }
+    .signal-HOLD { background: rgba(123,131,166,0.15); color: var(--muted); }
+
+    /* Position box */
+    .position-box {
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      margin-top: 4px;
+    }
+    .pos-in  { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.25); }
+    .pos-out { background: rgba(123,131,166,0.08); border: 1px solid var(--border); }
+
+    .pos-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+    .pos-value { font-size: 18px; font-weight: 700; margin-top: 4px; }
+    .pos-entry { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Trade table ── */
+    .trade-table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .trade-table-header {
+      padding: 16px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      padding: 10px 20px;
+      text-align: left;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    td {
+      padding: 12px 20px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    .badge-buy  { color: var(--green); font-weight: 700; }
+    .badge-sell { color: var(--red);   font-weight: 700; }
+
+    .empty-row { text-align: center; color: var(--muted); padding: 32px; }
+
+    /* ── P&L chart ── */
+    .chart-wrap { padding: 0 4px 4px; }
+
+    /* ── Pulse dot ── */
+    @keyframes pulse {
+      0%   { opacity: 1; }
+      50%  { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+    .pulse-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+      animation: pulse 2s infinite;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo">B</div>
+    <div>
+      <h1>Binance Bot Dashboard</h1>
+      <div class="subtitle" id="header-sub">Loading...</div>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:16px;">
+    <span class="last-updated" id="last-updated">—</span>
+    <span class="status-badge status-starting" id="status-badge">Starting</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Stat cards -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-label">Current price</div>
+      <div class="card-value" id="price">—</div>
+      <div class="card-sub" id="price-sub">BTCUSDT · Testnet</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Session P&amp;L</div>
+      <div class="card-value" id="pnl">—</div>
+      <div class="card-sub" id="pnl-sub">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Win rate</div>
+      <div class="card-value" id="winrate">—</div>
+      <div class="card-sub" id="trades-count">0 trades this session</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Account balance</div>
+      <div class="card-value" id="balance">—</div>
+      <div class="card-sub" id="balance-sub">USDT · Testnet</div>
+    </div>
+  </div>
+
+  <!-- Indicators + Position -->
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-title">Indicators</div>
+      <div class="indicator-row">
+        <span class="indicator-name">RSI (14)</span>
+        <span class="indicator-val" id="rsi">—</span>
+      </div>
+      <div class="indicator-row">
+        <span class="indicator-name">SMA short (9)</span>
+        <span class="indicator-val" id="sma-short">—</span>
+      </div>
+      <div class="indicator-row">
+        <span class="indicator-name">SMA long (21)</span>
+        <span class="indicator-val" id="sma-long">—</span>
+      </div>
+      <div class="indicator-row">
+        <span class="indicator-name">Last signal</span>
+        <span class="signal-pill signal-HOLD" id="signal">HOLD</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Position</div>
+      <div id="position-box" class="position-box pos-out">
+        <div class="pos-label">Status</div>
+        <div class="pos-value" id="pos-value">Flat</div>
+        <div class="pos-entry" id="pos-entry">No open position</div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="indicator-row">
+          <span class="indicator-name">Starting balance</span>
+          <span class="indicator-val" id="start-bal">—</span>
+        </div>
+        <div class="indicator-row">
+          <span class="indicator-name">Mode</span>
+          <span class="indicator-val" id="mode-val">—</span>
+        </div>
+        <div class="indicator-row">
+          <span class="indicator-name">Interval</span>
+          <span class="indicator-val" id="interval-val">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trade history -->
+  <div class="trade-table-wrap">
+    <div class="trade-table-header">Trade history</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Side</th>
+          <th>Price (USDT)</th>
+          <th>Qty</th>
+          <th>P&amp;L (USDT)</th>
+        </tr>
+      </thead>
+      <tbody id="trade-tbody">
+        <tr><td colspan="5" class="empty-row">No trades yet — bot is watching the market</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  const fmt  = (n, d=2)  => n != null ? Number(n).toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d}) : '—';
+  const fmtP = (n)       => n != null ? (n >= 0 ? '+' : '') + fmt(n, 4) : '—';
+  const cls  = (n)       => n == null ? 'neutral' : (n >= 0 ? 'positive' : 'negative');
+
+  async function refresh() {
+    let s;
+    try {
+      const r = await fetch('/api/state');
+      s = await r.json();
+    } catch(e) { return; }
+
+    // Header
+    document.getElementById('header-sub').textContent =
+      `${s.symbol || '—'} · ${s.interval || '—'} · started ${s.started_at || '—'}`;
+    document.getElementById('last-updated').textContent =
+      s.last_updated ? `Updated ${s.last_updated}` : '';
+
+    const badge = document.getElementById('status-badge');
+    badge.textContent = (s.status || 'unknown').toUpperCase();
+    badge.className = 'status-badge status-' + (s.status || 'stopped');
+
+    // Price card
+    document.getElementById('price').textContent = s.price ? '$' + fmt(s.price, 2) : '—';
+    document.getElementById('price-sub').textContent =
+      `${s.symbol || '—'} · ${s.mode || '—'}`;
+
+    // P&L card
+    const pnlEl = document.getElementById('pnl');
+    pnlEl.textContent = s.total_pnl != null ? fmtP(s.total_pnl) + ' USDT' : '—';
+    pnlEl.className = 'card-value ' + cls(s.total_pnl);
+
+    const pnlPct = s.starting_balance && s.starting_balance > 0
+      ? ((s.total_pnl / s.starting_balance) * 100).toFixed(2)
+      : null;
+    document.getElementById('pnl-sub').textContent =
+      pnlPct != null ? `${pnlPct >= 0 ? '+' : ''}${pnlPct}% vs start` : 'Session P&L';
+
+    // Win rate card
+    const total = (s.wins || 0) + (s.losses || 0);
+    const wr = total > 0 ? ((s.wins / total) * 100).toFixed(1) : null;
+    const wrEl = document.getElementById('winrate');
+    wrEl.textContent = wr != null ? wr + '%' : '—';
+    wrEl.className = 'card-value ' + (wr >= 50 ? 'positive' : wr != null ? 'negative' : 'neutral');
+    document.getElementById('trades-count').textContent =
+      `${total} trade${total !== 1 ? 's' : ''} · ${s.wins || 0}W / ${s.losses || 0}L`;
+
+    // Balance card
+    document.getElementById('balance').textContent =
+      s.current_balance != null ? '$' + fmt(s.current_balance, 2) : '—';
+
+    // Indicators
+    const rsiVal = s.rsi;
+    const rsiEl = document.getElementById('rsi');
+    rsiEl.textContent = rsiVal != null ? rsiVal : '—';
+    rsiEl.className = 'indicator-val ' +
+      (rsiVal > 70 ? 'negative' : rsiVal < 30 ? 'positive' : 'neutral');
+
+    document.getElementById('sma-short').textContent = s.sma_short ? fmt(s.sma_short, 2) : '—';
+    document.getElementById('sma-long').textContent  = s.sma_long  ? fmt(s.sma_long, 2)  : '—';
+
+    const sig = s.last_signal || 'HOLD';
+    const sigEl = document.getElementById('signal');
+    sigEl.textContent = sig;
+    sigEl.className = 'signal-pill signal-' + sig;
+
+    // Position
+    const posBox   = document.getElementById('position-box');
+    const posVal   = document.getElementById('pos-value');
+    const posEntry = document.getElementById('pos-entry');
+    if (s.in_position) {
+      posBox.className = 'position-box pos-in';
+      posVal.textContent = 'In Position';
+      posVal.className = 'pos-value positive';
+      posEntry.textContent = s.entry_price ? `Entry: $${fmt(s.entry_price, 2)}` : 'Entry: —';
+    } else {
+      posBox.className = 'position-box pos-out';
+      posVal.textContent = 'Flat';
+      posVal.className = 'pos-value neutral';
+      posEntry.textContent = 'No open position';
+    }
+
+    document.getElementById('start-bal').textContent =
+      s.starting_balance != null ? '$' + fmt(s.starting_balance, 2) : '—';
+    document.getElementById('mode-val').textContent     = s.mode || '—';
+    document.getElementById('interval-val').textContent = s.interval || '—';
+
+    // Trade history
+    const tbody = document.getElementById('trade-tbody');
+    if (!s.trades || s.trades.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-row">No trades yet — bot is watching the market</td></tr>';
+    } else {
+      tbody.innerHTML = s.trades.map(t => {
+        const pnlStr = t.side === 'SELL' && t.pnl != null
+          ? `<span class="${t.pnl >= 0 ? 'positive' : 'negative'}">${fmtP(t.pnl)}</span>`
+          : '<span style="color:#7b83a6">—</span>';
+        return `<tr>
+          <td>${t.timestamp || '—'}</td>
+          <td><span class="badge-${t.side?.toLowerCase()}">${t.side || '—'}</span></td>
+          <td>${t.price != null ? fmt(t.price, 2) : '—'}</td>
+          <td>${t.quantity || '—'}</td>
+          <td>${pnlStr}</td>
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 5000);
+</script>
+
+</body>
+</html>

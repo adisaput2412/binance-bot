@@ -1,0 +1,24 @@
+# Never commit these — they contain your API keys
+.env
+*.env
+
+# Bot output files
+bot.log
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# macOS
+.DS_Store
+
+# Virtual environment (if you use one)
+venv/
+.venv/
+env/

@@ -1,0 +1,26 @@
+[Unit]
+Description=Binance Trading Bot
+After=network.target
+Wants=network-online.target
+
+[Service]
+# Change "holy" to your VPS username
+User=holy
+WorkingDirectory=/home/holy/binance-bot
+
+# Full path to python and main.py
+ExecStart=/usr/bin/python3 /home/holy/binance-bot/main.py
+
+# Restart automatically if the bot crashes
+Restart=always
+RestartSec=10
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+
+# Logging — view with: journalctl -u binance-bot -f
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
