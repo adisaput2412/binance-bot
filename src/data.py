@@ -4,7 +4,7 @@ data.py — fetches live price data from Binance.
 
 import logging
 from binance.client import Client
-from src.config import WATCH_PAIRS
+from src.config import TRADE_PAIRS
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +26,12 @@ def get_price(client: Client, symbol: str) -> float | None:
 
 def get_all_prices(client: Client) -> dict[str, float]:
     """
-    Returns a dict of current prices for all pairs in WATCH_PAIRS.
+    Returns a dict of current prices for all pairs in TRADE_PAIRS.
     e.g. {'BTCUSDT': 68000.5, 'ETHUSDT': 3500.2, ...}
     """
     prices = {}
-    for symbol in WATCH_PAIRS:
+    for pair in TRADE_PAIRS:
+        symbol = pair["symbol"]
         price = get_price(client, symbol)
         if price is not None:
             prices[symbol] = price
