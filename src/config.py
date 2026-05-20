@@ -51,7 +51,7 @@ RSI_PERIOD     = 14
 
 # ── Risk settings (applied per pair) ──────────────────────────────
 STOP_LOSS_PCT        = 2.0   # 2% drop from entry → stop-loss sell
-MAX_SESSION_LOSS_PCT = 5.0   # 5% total session loss → halt that pair
+MAX_SESSION_LOSS_PCT = 10.0   # 5% total session loss → halt that pair
 
 # ── Telegram notifications ─────────────────────────────────────────
 TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN", "")
