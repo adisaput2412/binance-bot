@@ -5,6 +5,8 @@
 # Bot output files
 bot.log
 *.log
+trade_history.json
+backtest_results/
 
 # Python cache
 __pycache__/

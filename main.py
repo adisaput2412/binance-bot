@@ -24,6 +24,7 @@ from src.data import get_account_balance
 from src.state import bot_state
 from src.sentiment import get_sentiment
 import src.notifier as notifier
+import src.trade_log as trade_log
 from dashboard.app import run_dashboard
 from src.config import (
     USE_TESTNET,
@@ -178,6 +179,13 @@ def main():
 
     # ── Seed state ────────────────────────────────────────────────
     bot_state.update(status="starting", mode=mode)
+
+    # ── Load persistent trade history ────────────────────────────
+    past_trades = trade_log.load_all()
+    for t in past_trades:
+        bot_state.add_trade(t)
+    if past_trades:
+        logger.info(f"Restored {len(past_trades)} trades from trade_history.json")
 
     # ── Connect ───────────────────────────────────────────────────
     client = get_client()

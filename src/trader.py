@@ -4,9 +4,11 @@ trader.py — places market orders, enforces risk rules, and tracks performance.
 Flow for each tick:
   1. If in position → check stop-loss → force-sell if triggered
   2. If signal is BUY/SELL → check risk gate → place order → record in performance
+  3. Every trade is saved to trade_history.json so it survives restarts.
 """
 
 import logging
+from datetime import datetime
 from binance.client import Client
 from binance.exceptions import BinanceAPIException
 
@@ -16,6 +18,7 @@ from src.performance import PerformanceTracker
 from src.config import USE_TESTNET, STOP_LOSS_PCT
 from src.state import bot_state
 import src.notifier as notifier
+import src.trade_log as trade_log
 
 logger = logging.getLogger(__name__)
 
@@ -72,13 +75,12 @@ class Trader:
             )
             order_id = str(order.get("orderId", ""))
             status   = order.get("status", "")
+            ts       = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             logger.info(
                 f"[{mode}]{tag} {side} {self.quantity} {self.symbol} "
                 f"@ ~{price:,.4f} | order_id={order_id} status={status}"
             )
-
-            ts = self.performance.trades[-1].timestamp if self.performance.trades else ""
 
             if side == Client.SIDE_BUY:
                 self.position    = IN_POSITION
@@ -86,11 +88,16 @@ class Trader:
                 self.performance.record_buy(price, self.quantity, order_id)
                 notifier.notify_buy(self.symbol, price, self.quantity)
                 bot_state.update_pair(self.symbol, in_position=True, entry_price=price)
-                bot_state.add_trade({
+
+                record = {
                     "symbol": self.symbol, "timestamp": ts,
                     "side": "BUY", "price": price,
                     "quantity": self.quantity, "pnl": None,
-                })
+                    "reason": reason, "order_id": order_id,
+                }
+                bot_state.add_trade(record)
+                trade_log.append_trade(record)   # ← persist to disk
+
             else:
                 self.performance.record_sell(price, self.quantity, order_id)
                 trade_pnl = self.performance.trades[-1].pnl if self.performance.trades else 0.0
@@ -104,11 +111,14 @@ class Trader:
                     wins=self.performance.wins,
                     losses=self.performance.losses,
                 )
-                bot_state.add_trade({
+                record = {
                     "symbol": self.symbol, "timestamp": ts,
                     "side": "SELL", "price": price,
                     "quantity": self.quantity, "pnl": trade_pnl,
-                })
+                    "reason": reason, "order_id": order_id,
+                }
+                bot_state.add_trade(record)
+                trade_log.append_trade(record)   # ← persist to disk
 
         except BinanceAPIException as e:
             logger.error(f"Order failed ({side} {self.symbol}): {e.message}")
