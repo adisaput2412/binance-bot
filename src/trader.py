@@ -15,7 +15,7 @@ from binance.exceptions import BinanceAPIException
 from src.strategy import BUY, SELL, HOLD
 from src.risk import RiskManager
 from src.performance import PerformanceTracker
-from src.config import USE_TESTNET, STOP_LOSS_PCT
+from src.config import USE_TESTNET, STOP_LOSS_PCT, TAKE_PROFIT_PCT
 from src.state import bot_state
 import src.notifier as notifier
 import src.trade_log as trade_log
@@ -45,6 +45,14 @@ class Trader:
                 drop_pct = ((self.entry_price - current_price) / self.entry_price) * 100
                 notifier.notify_stop_loss(self.symbol, self.entry_price, current_price, drop_pct)
                 self._place_order(Client.SIDE_SELL, current_price, reason="STOP-LOSS")
+                return
+
+        # 1b. Take-profit check
+        if self.position == IN_POSITION and self.entry_price > 0:
+            rise_pct = ((current_price - self.entry_price) / self.entry_price) * 100
+            if rise_pct >= TAKE_PROFIT_PCT:
+                logger.info(f"[{self.symbol}] Take-profit triggered (+{rise_pct:.2f}%)")
+                self._place_order(Client.SIDE_SELL, current_price, reason="TAKE-PROFIT")
                 return
 
         # 2. Session loss guard

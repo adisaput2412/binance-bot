@@ -24,34 +24,37 @@ TRADE_PAIRS = [
     {
         "symbol":   "BTCUSDT",
         "quantity": 0.001,    # ~$100 worth at $100k BTC
-        "interval": "5m",
+        "interval": "1h",
     },
     {
         "symbol":   "ETHUSDT",
         "quantity": 0.01,     # ~$25 worth at $2500 ETH
-        "interval": "5m",
+        "interval": "1h",
     },
     {
         "symbol":   "SOLUSDT",
         "quantity": 0.1,      # ~$15 worth at $150 SOL
-        "interval": "5m",
+        "interval": "1h",
     },
     {
         "symbol":   "BNBUSDT",
         "quantity": 0.05,     # ~$15 worth at $300 BNB
-        "interval": "5m",
+        "interval": "1h",
     },
 ]
 
 # ── Strategy settings (shared across all pairs) ────────────────────
-TRADE_INTERVAL = "5m"    # default fallback
-SMA_SHORT      = 9
-SMA_LONG       = 21
+# Optimised via 90-day backtest (2026-06-08): 1h SMA 20/50 + TP 6% gave
+# best balance of trade frequency and P&L vs original SMA 9/21 on 5m.
+TRADE_INTERVAL = "1h"    # default fallback
+SMA_SHORT      = 20
+SMA_LONG       = 50
 RSI_PERIOD     = 14
 
 # ── Risk settings (applied per pair) ──────────────────────────────
 STOP_LOSS_PCT        = 2.0   # 2% drop from entry → stop-loss sell
-MAX_SESSION_LOSS_PCT = 10.0   # 5% total session loss → halt that pair
+TAKE_PROFIT_PCT      = 6.0   # 6% rise from entry → take-profit sell
+MAX_SESSION_LOSS_PCT = 10.0  # 10% total session loss → halt that pair
 
 # ── Telegram notifications ─────────────────────────────────────────
 TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN", "")

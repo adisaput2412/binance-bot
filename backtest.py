@@ -36,7 +36,7 @@ except ImportError:
     raise
 
 # ── Load config ───────────────────────────────────────────────────────
-from src.config import TRADE_PAIRS, SMA_SHORT, SMA_LONG, RSI_PERIOD, STOP_LOSS_PCT
+from src.config import TRADE_PAIRS, SMA_SHORT, SMA_LONG, RSI_PERIOD, STOP_LOSS_PCT, TAKE_PROFIT_PCT
 
 OUTPUT_DIR = "backtest_results"
 INTERVAL   = "5m"
@@ -72,12 +72,12 @@ def fetch_klines(symbol: str, interval: str, days: int) -> pd.DataFrame:
 # Indicators
 # ═══════════════════════════════════════════════════════════════════════
 
-def add_indicators(df: pd.DataFrame) -> pd.DataFrame:
+def add_indicators(df: pd.DataFrame, sma_short: int = SMA_SHORT, sma_long: int = SMA_LONG) -> pd.DataFrame:
     df = df.copy()
 
     # SMA
-    df["sma_short"] = df["close"].rolling(SMA_SHORT).mean()
-    df["sma_long"]  = df["close"].rolling(SMA_LONG).mean()
+    df["sma_short"] = df["close"].rolling(sma_short).mean()
+    df["sma_long"]  = df["close"].rolling(sma_long).mean()
 
     # RSI (Wilder's smoothing)
     delta    = df["close"].diff()
@@ -114,7 +114,9 @@ def get_signal(row, prev_row) -> str:
 # ═══════════════════════════════════════════════════════════════════════
 
 def run_backtest(symbol: str, df: pd.DataFrame, quantity: float,
-                 initial_balance: float = 10_000.0) -> dict:
+                 initial_balance: float = 10_000.0,
+                 sl_pct: float = STOP_LOSS_PCT,
+                 tp_pct: float = TAKE_PROFIT_PCT) -> dict:
 
     rows       = df.dropna(subset=["sma_short", "sma_long", "rsi"]).reset_index(drop=True)
     in_pos     = False
@@ -128,16 +130,33 @@ def run_backtest(symbol: str, df: pd.DataFrame, quantity: float,
         prev_row = rows.iloc[i - 1]
         price    = row["close"]
 
-        # ── Stop-loss ──────────────────────────────────────────────
+        # ── Stop-loss & Take-profit ────────────────────────────────
         if in_pos:
             drop_pct = (entry_price - price) / entry_price * 100
-            if drop_pct >= STOP_LOSS_PCT:
+            rise_pct = (price - entry_price) / entry_price * 100
+
+            if drop_pct >= sl_pct:
                 fee = price * quantity * FEE_RATE
                 pnl = (price - entry_price) * quantity - fee
                 balance += pnl
                 trades.append({
                     "timestamp": row["timestamp"].strftime("%Y-%m-%d %H:%M"),
                     "side": "SELL", "reason": "STOP-LOSS",
+                    "price": price, "quantity": quantity,
+                    "pnl": round(pnl, 4),
+                })
+                in_pos = False
+                entry_price = 0.0
+                equity_curve.append(balance)
+                continue
+
+            if rise_pct >= tp_pct:
+                fee = price * quantity * FEE_RATE
+                pnl = (price - entry_price) * quantity - fee
+                balance += pnl
+                trades.append({
+                    "timestamp": row["timestamp"].strftime("%Y-%m-%d %H:%M"),
+                    "side": "SELL", "reason": "TAKE-PROFIT",
                     "price": price, "quantity": quantity,
                     "pnl": round(pnl, 4),
                 })
@@ -279,7 +298,7 @@ def send_telegram(token: str, chat_id: str, text: str) -> None:
 def build_telegram_message(results: list[dict], days: int) -> str:
     lines = [
         f"📊 *Backtest Results — last {days} days*",
-        f"Strategy: SMA({SMA_SHORT}/{SMA_LONG}) + RSI({RSI_PERIOD}) | SL: {STOP_LOSS_PCT}%\n",
+        f"Strategy: SMA({SMA_SHORT}/{SMA_LONG}) + RSI({RSI_PERIOD}) | SL: {STOP_LOSS_PCT}% | TP: {TAKE_PROFIT_PCT}%\n",
     ]
     for r in results:
         verdict = "✅" if r["total_pnl"] >= 0 else "❌"
@@ -307,15 +326,17 @@ def build_telegram_message(results: list[dict], days: int) -> str:
     return "\n".join(lines)
 
 
-def save_summary(results: list[dict], days: int) -> str:
+def save_summary(results: list[dict], days: int, interval: str = INTERVAL,
+                 sma_short: int = SMA_SHORT, sma_long: int = SMA_LONG,
+                 sl_pct: float = STOP_LOSS_PCT, tp_pct: float = TAKE_PROFIT_PCT) -> str:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     path = os.path.join(OUTPUT_DIR, "backtest_summary.txt")
     lines = [
         f"Binance Bot Backtest Summary",
         f"Generated : {datetime.now().strftime('%Y-%m-%d %H:%M')}",
         f"Period    : last {days} days",
-        f"Strategy  : SMA({SMA_SHORT}/{SMA_LONG}) + RSI({RSI_PERIOD}) | Stop-loss: {STOP_LOSS_PCT}%",
-        f"Interval  : {INTERVAL}",
+        f"Strategy  : SMA({sma_short}/{sma_long}) + RSI({RSI_PERIOD}) | Stop-loss: {sl_pct}% | Take-profit: {tp_pct}%",
+        f"Interval  : {interval}",
         "",
         f"{'Symbol':<12} {'Trades':>7} {'Win%':>7} {'P&L USDT':>12} {'Return%':>9} {'MaxDD%':>8}",
         "─" * 60,
@@ -342,9 +363,21 @@ def save_summary(results: list[dict], days: int) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Backtest the SMA+RSI strategy")
-    parser.add_argument("--days",   type=int, default=90,  help="How many days back (default: 90)")
-    parser.add_argument("--symbol", type=str, default=None, help="Single symbol, e.g. BTCUSDT")
+    parser.add_argument("--days",      type=int,   default=90,   help="How many days back (default: 90)")
+    parser.add_argument("--symbol",    type=str,   default=None, help="Single symbol, e.g. BTCUSDT")
+    parser.add_argument("--interval",  type=str,   default=None, help="Candle interval: 1m 5m 15m 1h 4h (default: from config)")
+    parser.add_argument("--sma-short", type=int,   default=None, help="Short SMA period (default: from config)")
+    parser.add_argument("--sma-long",  type=int,   default=None, help="Long SMA period (default: from config)")
+    parser.add_argument("--tp",        type=float, default=None, help="Take-profit %% (default: from config)")
+    parser.add_argument("--sl",        type=float, default=None, help="Stop-loss %% (default: from config)")
     args = parser.parse_args()
+
+    # Override config values if flags were passed
+    sma_short   = args.sma_short or SMA_SHORT
+    sma_long    = args.sma_long  or SMA_LONG
+    interval    = args.interval  or INTERVAL
+    tp_pct      = args.tp        if args.tp is not None else TAKE_PROFIT_PCT
+    sl_pct      = args.sl        if args.sl is not None else STOP_LOSS_PCT
 
     pairs = TRADE_PAIRS
     if args.symbol:
@@ -353,11 +386,12 @@ def main():
             print(f"Symbol {args.symbol} not found in TRADE_PAIRS. Check config.py")
             return
 
-    print(f"\n{'═'*52}")
+    print(f"\n{'═'*56}")
     print(f"  Binance Bot Backtest — last {args.days} days")
-    print(f"  Strategy: SMA({SMA_SHORT}/{SMA_LONG}) + RSI({RSI_PERIOD}) | Stop-loss: {STOP_LOSS_PCT}%")
-    print(f"  Pairs: {', '.join(p['symbol'] for p in pairs)}")
-    print(f"{'═'*52}\n")
+    print(f"  Strategy : SMA({sma_short}/{sma_long}) + RSI({RSI_PERIOD}) | Interval: {interval}")
+    print(f"  Risk     : Stop-loss={sl_pct}%  Take-profit={tp_pct}%")
+    print(f"  Pairs    : {', '.join(p['symbol'] for p in pairs)}")
+    print(f"{'═'*56}\n")
 
     results = []
 
@@ -366,9 +400,9 @@ def main():
         quantity = pair["quantity"]
         print(f"► {symbol}")
         try:
-            df = fetch_klines(symbol, INTERVAL, args.days)
-            df = add_indicators(df)
-            r  = run_backtest(symbol, df, quantity)
+            df = fetch_klines(symbol, interval, args.days)
+            df = add_indicators(df, sma_short=sma_short, sma_long=sma_long)
+            r  = run_backtest(symbol, df, quantity, sl_pct=sl_pct, tp_pct=tp_pct)
             print_result(r)
             csv_path = save_trades_csv(r)
             print(f"  Trades saved → {csv_path}")
@@ -392,7 +426,9 @@ def main():
         print(f"  Worst pair : {min(results, key=lambda r: r['total_pnl'])['symbol']}")
 
     if results:
-        summary_path = save_summary(results, args.days)
+        summary_path = save_summary(results, args.days,
+                                    interval=interval, sma_short=sma_short, sma_long=sma_long,
+                                    sl_pct=sl_pct, tp_pct=tp_pct)
         print(f"\n  Full summary saved → {summary_path}")
 
         # Send to Telegram
