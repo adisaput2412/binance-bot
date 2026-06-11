@@ -128,7 +128,11 @@ def pair_loop(pair_cfg: dict, client, mode: str):
             if indicators:
                 current_price = indicators["close"]
                 usdt_now      = get_usdt_balance(client)
-                risk.update_balance(usdt_now)
+                if usdt_now > 0:   # skip if API timed out (returns 0.0 on error)
+                    risk.update_balance(usdt_now)
+                else:
+                    logger.warning(f"[{symbol}] Balance fetch returned 0 — skipping risk update (API timeout?)")
+                    usdt_now = risk.current_balance or 0.0  # use last known balance
 
                 bot_state.update_pair(
                     symbol,
