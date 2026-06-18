@@ -41,6 +41,26 @@ TRADE_PAIRS = [
         "quantity": 0.05,     # ~$15 worth at $300 BNB
         "interval": "1h",
     },
+    {
+        "symbol":   "ADAUSDT",
+        "quantity": 10,       # ~$5 worth at $0.50 ADA
+        "interval": "1h",
+    },
+    {
+        "symbol":   "DOTUSDT",
+        "quantity": 2,        # ~$8 worth at $4 DOT
+        "interval": "1h",
+    },
+    {
+        "symbol":   "LINKUSDT",
+        "quantity": 0.5,      # ~$7 worth at $14 LINK
+        "interval": "1h",
+    },
+    {
+        "symbol":   "AVAXUSDT",
+        "quantity": 0.2,      # ~$6 worth at $30 AVAX
+        "interval": "1h",
+    },
 ]
 
 # ── Strategy settings (shared across all pairs) ────────────────────
