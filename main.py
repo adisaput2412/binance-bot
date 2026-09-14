@@ -33,6 +33,7 @@ from src.config import (
     SMA_SHORT,
     SMA_LONG,
     RSI_PERIOD,
+    ADX_PERIOD,
     STOP_LOSS_PCT,
     MAX_SESSION_LOSS_PCT,
 )
@@ -123,6 +124,7 @@ def pair_loop(pair_cfg: dict, client, mode: str):
                 sma_short=SMA_SHORT,
                 sma_long=SMA_LONG,
                 rsi_period=RSI_PERIOD,
+                adx_period=ADX_PERIOD,
             )
 
             if indicators:
@@ -140,6 +142,7 @@ def pair_loop(pair_cfg: dict, client, mode: str):
                     sma_short=indicators["sma_short"],
                     sma_long=indicators["sma_long"],
                     rsi=indicators["rsi"],
+                    adx=indicators["adx"],
                     current_balance=usdt_now,
                     total_pnl=performance.total_pnl,
                     wins=performance.wins,

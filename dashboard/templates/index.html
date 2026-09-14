@@ -554,6 +554,8 @@
     const wr    = total > 0 ? ((p.wins/total)*100).toFixed(0)+'%' : '—';
     const rsi   = p.rsi;
     const rsiCls= rsi > 70 ? 'negative' : rsi < 30 ? 'positive' : 'neutral';
+    const adx   = p.adx;
+    const adxCls= adx != null && adx >= 20 ? 'positive' : 'neutral';
     const hist  = priceHistory[p.symbol] || [];
     const chg   = hist.length >= 2 ? hist[hist.length-1] - hist[0] : null;
     const chgPct= chg != null && hist[0] ? ((chg/hist[0])*100).toFixed(2) : null;
@@ -606,7 +608,11 @@
             <span class="pair-row-val ${rsiCls}" id="rsi-${p.symbol}">${rsi!=null?rsi:'—'}</span>
           </div>
           <div class="pair-row">
-            <span class="pair-row-label">SMA 9 / 21</span>
+            <span class="pair-row-label">ADX (14)</span>
+            <span class="pair-row-val ${adxCls}" id="adx-${p.symbol}">${adx!=null?adx:'—'}</span>
+          </div>
+          <div class="pair-row">
+            <span class="pair-row-label">SMA 20 / 50</span>
             <span class="pair-row-val" id="sma-${p.symbol}">
               ${p.sma_short?fmt(p.sma_short,2):'—'} / ${p.sma_long?fmt(p.sma_long,2):'—'}
             </span>
@@ -622,6 +628,8 @@
     const wr    = total > 0 ? ((p.wins/total)*100).toFixed(0)+'%' : '—';
     const rsi   = p.rsi;
     const rsiCls= rsi > 70 ? 'negative' : rsi < 30 ? 'positive' : 'neutral';
+    const adx   = p.adx;
+    const adxCls= adx != null && adx >= 20 ? 'positive' : 'neutral';
     const hist  = priceHistory[p.symbol] || [];
     const chg   = hist.length >= 2 ? hist[hist.length-1]-hist[0] : null;
     const chgPct= chg!=null && hist[0] ? ((chg/hist[0])*100).toFixed(2) : null;
@@ -650,6 +658,8 @@
     txt('wl-'+p.symbol,  `${p.wins||0}W · ${p.losses||0}L · ${wr}`);
     const rsiEl=document.getElementById('rsi-'+p.symbol);
     if(rsiEl){ rsiEl.textContent=rsi!=null?rsi:'—'; rsiEl.className='pair-row-val '+rsiCls; }
+    const adxEl=document.getElementById('adx-'+p.symbol);
+    if(adxEl){ adxEl.textContent=adx!=null?adx:'—'; adxEl.className='pair-row-val '+adxCls; }
     txt('sma-'+p.symbol, `${p.sma_short?fmt(p.sma_short,2):'—'} / ${p.sma_long?fmt(p.sma_long,2):'—'}`);
 
     updateChart(p.symbol);

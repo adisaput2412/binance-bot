@@ -36,7 +36,7 @@ except ImportError:
     raise
 
 # ── Load config ───────────────────────────────────────────────────────
-from src.config import TRADE_PAIRS, SMA_SHORT, SMA_LONG, RSI_PERIOD, STOP_LOSS_PCT, TAKE_PROFIT_PCT
+from src.config import TRADE_PAIRS, SMA_SHORT, SMA_LONG, RSI_PERIOD, ADX_PERIOD, ADX_THRESHOLD, STOP_LOSS_PCT, TAKE_PROFIT_PCT
 
 OUTPUT_DIR = "backtest_results"
 INTERVAL   = "5m"
@@ -88,6 +88,30 @@ def add_indicators(df: pd.DataFrame, sma_short: int = SMA_SHORT, sma_long: int =
     rs       = avg_gain / avg_loss.replace(0, 1e-10)
     df["rsi"] = 100 - (100 / (1 + rs))
 
+    # ADX (Wilder's, via ewm alpha=1/period — matches src/indicators.py)
+    up_move   = df["high"].diff()
+    down_move = -df["low"].diff()
+    plus_dm  = ((up_move > down_move) & (up_move > 0)) * up_move.clip(lower=0)
+    minus_dm = ((down_move > up_move) & (down_move > 0)) * down_move.clip(lower=0)
+
+    prev_close = df["close"].shift(1)
+    tr = pd.concat([
+        df["high"] - df["low"],
+        (df["high"] - prev_close).abs(),
+        (df["low"] - prev_close).abs(),
+    ], axis=1).max(axis=1)
+
+    alpha = 1 / ADX_PERIOD
+    tr_s       = tr.ewm(alpha=alpha, adjust=False).mean()
+    plus_dm_s  = plus_dm.ewm(alpha=alpha, adjust=False).mean()
+    minus_dm_s = minus_dm.ewm(alpha=alpha, adjust=False).mean()
+
+    plus_di  = 100 * plus_dm_s / tr_s.replace(0, 1e-10)
+    minus_di = 100 * minus_dm_s / tr_s.replace(0, 1e-10)
+    di_sum   = (plus_di + minus_di).replace(0, 1e-10)
+    dx       = 100 * (plus_di - minus_di).abs() / di_sum
+    df["adx"] = dx.ewm(alpha=alpha, adjust=False).mean()
+
     return df
 
 
@@ -102,9 +126,11 @@ def get_signal(row, prev_row) -> str:
     cross_up   = row["sma_short"] > row["sma_long"]  and prev_row["sma_short"] <= prev_row["sma_long"]
     cross_down = row["sma_short"] < row["sma_long"]  and prev_row["sma_short"] >= prev_row["sma_long"]
 
-    if cross_up   and row["rsi"] < 70:
+    trending = row["adx"] >= ADX_THRESHOLD
+
+    if cross_up   and row["rsi"] < 70 and trending:
         return "BUY"
-    if cross_down and row["rsi"] > 30:
+    if cross_down and row["rsi"] > 30 and trending:
         return "SELL"
     return "HOLD"
 
@@ -118,7 +144,7 @@ def run_backtest(symbol: str, df: pd.DataFrame, quantity: float,
                  sl_pct: float = STOP_LOSS_PCT,
                  tp_pct: float = TAKE_PROFIT_PCT) -> dict:
 
-    rows       = df.dropna(subset=["sma_short", "sma_long", "rsi"]).reset_index(drop=True)
+    rows       = df.dropna(subset=["sma_short", "sma_long", "rsi", "adx"]).reset_index(drop=True)
     in_pos     = False
     entry_price = 0.0
     balance    = initial_balance

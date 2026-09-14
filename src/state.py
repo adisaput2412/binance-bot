@@ -47,6 +47,7 @@ class BotState:
                     "sma_short":       None,
                     "sma_long":        None,
                     "rsi":             None,
+                    "adx":             None,
                     "last_signal":     "HOLD",
                     "in_position":     False,
                     "entry_price":     None,

@@ -1,15 +1,20 @@
 """
 strategy.py — generates BUY / SELL / HOLD signals.
 
-Uses a combined SMA crossover + RSI filter + Sentiment guard:
-  BUY  — short SMA crosses above long SMA  AND  RSI < 70  AND  sentiment != BEARISH
-  SELL — short SMA crosses below long SMA  AND  RSI > 30  AND  sentiment != BULLISH
-  HOLD — signals don't agree, crossover blocked by sentiment, or no crossover
+Uses a combined SMA crossover + RSI filter + ADX trend filter + Sentiment guard:
+  BUY  — short SMA crosses above long SMA  AND  RSI < 70  AND  ADX >= threshold  AND  sentiment != BEARISH
+  SELL — short SMA crosses below long SMA  AND  RSI > 30  AND  ADX >= threshold  AND  sentiment != BULLISH
+  HOLD — signals don't agree, ADX says market is ranging/choppy,
+         crossover blocked by sentiment, or no crossover
 
+ADX filters out SMA crossovers that fire during a ranging (non-trending)
+market — the classic whipsaw source for crossover strategies.
 Sentiment is refreshed every 15 minutes in main.py (Fear & Greed + Google News).
 """
 
 import logging
+
+from src.config import ADX_THRESHOLD
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +55,7 @@ def get_signal(indicators: dict, prev_indicators: dict | None,
     prev_short = prev_indicators["sma_short"]
     prev_long  = prev_indicators["sma_long"]
     curr_rsi   = indicators["rsi"]
+    curr_adx   = indicators.get("adx", 0)
     curr_close = indicators["close"]
 
     verdict = sentiment.get("verdict", "NEUTRAL") if sentiment else "NEUTRAL"
@@ -66,7 +72,10 @@ def get_signal(indicators: dict, prev_indicators: dict | None,
 
     if was_below and now_above:
         # Bullish crossover
-        if curr_rsi >= RSI_OVERBOUGHT:
+        if curr_adx < ADX_THRESHOLD:
+            logger.info(f"Crossover up but ADX={curr_adx} < {ADX_THRESHOLD} (ranging) — holding")
+
+        elif curr_rsi >= RSI_OVERBOUGHT:
             logger.info(f"Crossover up but RSI={curr_rsi} overbought — holding")
 
         elif verdict == "BEARISH":
@@ -80,12 +89,15 @@ def get_signal(indicators: dict, prev_indicators: dict | None,
             logger.info(
                 f"BUY signal  | price={curr_close:,.4f}  "
                 f"SMA({curr_short:.4f})>SMA({curr_long:.4f})  "
-                f"RSI={curr_rsi}  Sentiment={verdict} (F&G={fg_value})"
+                f"RSI={curr_rsi}  ADX={curr_adx}  Sentiment={verdict} (F&G={fg_value})"
             )
 
     elif was_above and now_below:
         # Bearish crossover
-        if curr_rsi <= RSI_OVERSOLD:
+        if curr_adx < ADX_THRESHOLD:
+            logger.info(f"Crossover down but ADX={curr_adx} < {ADX_THRESHOLD} (ranging) — holding")
+
+        elif curr_rsi <= RSI_OVERSOLD:
             logger.info(f"Crossover down but RSI={curr_rsi} oversold — holding")
 
         elif verdict == "BULLISH":
@@ -99,7 +111,7 @@ def get_signal(indicators: dict, prev_indicators: dict | None,
             logger.info(
                 f"SELL signal | price={curr_close:,.4f}  "
                 f"SMA({curr_short:.4f})<SMA({curr_long:.4f})  "
-                f"RSI={curr_rsi}  Sentiment={verdict} (F&G={fg_value})"
+                f"RSI={curr_rsi}  ADX={curr_adx}  Sentiment={verdict} (F&G={fg_value})"
             )
 
     else:

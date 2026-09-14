@@ -72,6 +72,12 @@ SMA_SHORT      = 20
 SMA_LONG       = 50
 RSI_PERIOD     = 14
 
+# ADX = trend-strength chop filter. SMA crossovers whipsaw in ranging
+# markets; requiring ADX >= threshold means we only trade when a real
+# trend is underway. 20 is a common "some trend" cutoff (25+ = strong).
+ADX_PERIOD     = 14
+ADX_THRESHOLD  = 20
+
 # ── Risk settings (applied per pair) ──────────────────────────────
 STOP_LOSS_PCT        = 2.0   # 2% drop from entry → stop-loss sell
 TAKE_PROFIT_PCT      = 2.5   # 2.5% rise from entry → take-profit sell (tightened from 6% to raise win rate; was ~8% win rate at 6% TP)
