@@ -64,8 +64,9 @@ TRADE_PAIRS = [
 ]
 
 # ── Strategy settings (shared across all pairs) ────────────────────
-# Optimised via 90-day backtest (2026-06-08): 1h SMA 20/50 + TP 6% gave
-# best balance of trade frequency and P&L vs original SMA 9/21 on 5m.
+# 2026-09-14: live win rate at 6% TP was ~8% — TP tightened to 2.5%
+# (closer to the 2% SL) to raise win rate at the cost of smaller wins.
+# Re-verify with backtest.py --interval 1h --days 90 before trusting this.
 TRADE_INTERVAL = "1h"    # default fallback
 SMA_SHORT      = 20
 SMA_LONG       = 50
@@ -73,7 +74,7 @@ RSI_PERIOD     = 14
 
 # ── Risk settings (applied per pair) ──────────────────────────────
 STOP_LOSS_PCT        = 2.0   # 2% drop from entry → stop-loss sell
-TAKE_PROFIT_PCT      = 6.0   # 6% rise from entry → take-profit sell
+TAKE_PROFIT_PCT      = 2.5   # 2.5% rise from entry → take-profit sell (tightened from 6% to raise win rate; was ~8% win rate at 6% TP)
 MAX_SESSION_LOSS_PCT = 10.0  # 10% total session loss → halt that pair
 
 # ── Telegram notifications ─────────────────────────────────────────
